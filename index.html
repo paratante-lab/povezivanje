@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emoji & Brojevi - Poveži simbole i riječi</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            background-color: #f0f7ff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            width: 100%;
+            max-width: 600px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.2rem;
+        }
+        
+        .game-container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+        
+        .category-selector {
+            margin-bottom: 20px;
+        }
+        
+        .category-btn {
+            background-color: #f1f1f1;
+            border: 2px solid #ddd;
+            padding: 10px 20px;
+            margin: 0 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+        
+        .category-btn.active {
+            background-color: #3498db;
+            color: white;
+            border-color: #2980b9;
+        }
+        
+        .symbol-display {
+            font-size: 8rem;
+            margin: 20px 0;
+            height: 150px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .question {
+            font-size: 1.3rem;
+            color: #34495e;
+            margin-bottom: 30px;
+            min-height: 30px;
+        }
+        
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .option {
+            background-color: #ecf0f1;
+            border: none;
+            border-radius: 10px;
+            padding: 20px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .option:hover {
+            background-color: #d6dbdf;
+            transform: translateY(-3px);
+        }
+        
+        .option.correct {
+            background-color: #2ecc71;
+            color: white;
+        }
+        
+        .option.incorrect {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .language-selector {
+            margin: 20px 0;
+        }
+        
+        .lang-btn {
+            background-color: #f1f1f1;
+            border: 2px solid #ddd;
+            padding: 8px 15px;
+            margin: 0 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .lang-btn.active {
+            background-color: #3498db;
+            color: white;
+            border-color: #2980b9;
+        }
+        
+        .progress {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        
+        .try-again-btn {
+            background-color: #f39c12;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background-color 0.3s;
+            display: none;
+        }
+        
+        .try-again-btn:hover {
+            background-color: #e67e22;
+        }
+        
+        footer {
+            margin-top: 30px;
+            color: #7f8c8d;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        @media (min-width: 600px) {
+            .options-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🎮 Emoji & Brojevi</h1>
+        <p class="subtitle" id="subtitle">Poveži simbol s odgovarajućom riječi</p>
+    </header>
+    
+    <div class="game-container">
+        <div class="category-selector">
+            <button class="category-btn active" id="emoji-btn">Emojiji</button>
+            <button class="category-btn" id="numbers-btn">Brojevi</button>
+        </div>
+        
+        <div class="language-selector">
+            <button class="lang-btn active" id="hr-btn">HRVATSKI</button>
+            <button class="lang-btn" id="en-btn">ENGLISH</button>
+        </div>
+        
+        <div class="symbol-display" id="symbol-display">🦁</div>
+        
+        <p class="question" id="question">Koja riječ odgovara ovom simbolu?</p>
+        
+        <div class="options-container" id="options-container">
+            <!-- Opcije će se dinamički dodati ovdje -->
+        </div>
+        
+        <button class="try-again-btn" id="try-again-btn">Pokušaj ponovno</button>
+        
+        <div class="progress" id="progress">Pitanje: 1/30</div>
+    </div>
+    
+    <footer>
+        <p>Jednostavna aplikacija za učenje vokabulara</p>
+    </footer>
+
+    <script>
+        // Podaci za emojije
+        const emojiData = [
+            { symbol: "🦁", hr: "LAV", en: "LION", wrongHr: ["LVA", "VAL", "ALV"], wrongEn: ["LOIN", "LINO", "NOLI"] },
+            { symbol: "🐯", hr: "TIGAR", en: "TIGER", wrongHr: ["TIGRA", "GITAR", "RAGIT"], wrongEn: ["TIGRE", "TIGAR", "GERIT"] },
+            { symbol: "🐘", hr: "SLON", en: "ELEPHANT", wrongHr: ["SNOL", "LOSN", "NOSL"], wrongEn: ["ELEFANT", "EPHALENT", "ELEPHAT"] },
+            { symbol: "🐕", hr: "PAS", en: "DOG", wrongHr: ["SAP", "ASP", "PSA"], wrongEn: ["GOD", "ODG", "DGO"] },
+            { symbol: "🐈", hr: "MAČKA", en: "CAT", wrongHr: ["ČAKMA", "KAČAM", "MAKAČ"], wrongEn: ["ACT", "TAC", "CTA"] },
+            { symbol: "🐎", hr: "KONJ", en: "HORSE", wrongHr: ["KNOJ", "JONK", "NJOK"], wrongEn: ["HOSRE", "SHORE", "ROHES"] },
+            { symbol: "🐖", hr: "SVINJA", en: "PIG", wrongHr: ["SIVNJA", "JASVIN", "NIVJAS"], wrongEn: ["GIP", "IPG", "PGI"] },
+            { symbol: "🐄", hr: "KRAVA", en: "COW", wrongHr: ["KAVAR", "RAKAV", "VARAK"], wrongEn: ["WOC", "OCW", "CWO"] },
+            { symbol: "🐑", hr: "OVCA", en: "SHEEP", wrongHr: ["VOCA", "CAVO", "AVOC"], wrongEn: ["SHEPE", "HEEPS", "PEESH"] },
+            { symbol: "🐒", hr: "MAJMUN", en: "MONKEY", wrongHr: ["MAJNUM", "JUNMAM", "NUMJAM"], wrongEn: ["MONKYE", "KEYMON", "KONMEY"] },
+            { symbol: "🌳", hr: "DRVO", en: "TREE", wrongHr: ["DVOR", "ROVD", "VORD"], wrongEn: ["TEER", "RETE", "ETRE"] },
+            { symbol: "🌻", hr: "SUNCOKRET", en: "SUNFLOWER", wrongHr: ["SUNCRET", "CRETSUN", "RETSUNC"], wrongEn: ["FLOWSUN", "SUNFLOW", "FLORSUN"] },
+            { symbol: "🍎", hr: "JABUKA", en: "APPLE", wrongHr: ["JUKABA", "BAJUKA", "KABAJU"], wrongEn: ["APLLE", "PELAP", "LEAPP"] },
+            { symbol: "🍌", hr: "BANANA", en: "BANANA", wrongHr: ["BANANANA", "NANABA", "ABANAN"], wrongEn: ["BANANANA", "ANANAB", "NANABA"] },
+            { symbol: "🍕", hr: "PIZZA", en: "PIZZA", wrongHr: ["PIZAZ", "ZAPIZ", "ZIPAZ"], wrongEn: ["PIZAZ", "ZAPIZ", "ZIPAZ"] },
+            { symbol: "🚗", hr: "AUTO", en: "CAR", wrongHr: ["TUOA", "OTUA", "AOUT"], wrongEn: ["RAC", "ARC", "RCA"] },
+            { symbol: "🚌", hr: "AUTOBUS", en: "BUS", wrongHr: ["BUSOTA", "TOBUSA", "SUTABO"], wrongEn: ["SUB", "USB", "BSU"] },
+            { symbol: "✈️", hr: "AVION", en: "AIRPLANE", wrongHr: ["VIONA", "ONAVI", "NAVIO"], wrongEn: ["PLANEAIR", "AIRLANE", "LANEAIR"] },
+            { symbol: "🚲", hr: "BICIKL", en: "BICYCLE", wrongHr: ["CIKLIB", "KLIBIC", "BICKIL"], wrongEn: ["BICYECL", "CYCLBIE", "CYCELBI"] },
+            { symbol: "🚢", hr: "BROD", en: "SHIP", wrongHr: ["RBOD", "DROB", "ORBD"], wrongEn: ["HIPS", "PISH", "SPIH"] },
+            { symbol: "🏠", hr: "KUĆA", en: "HOUSE", wrongHr: ["ĆAKU", "KUAĆ", "AĆUK"], wrongEn: ["HOSUE", "SOUHE", "UEHOS"] },
+            { symbol: "🏥", hr: "BOLNICA", en: "HOSPITAL", wrongHr: ["BONLICA", "LICABON", "NICABOL"], wrongEn: ["HOSPITOL", "HOSTIPAL", "SPITALHO"] },
+            { symbol: "🏫", hr: "ŠKOLA", en: "SCHOOL", wrongHr: ["ŠALKO", "KOŠLA", "LAKOŠ"], wrongEn: ["SHCOOL", "COOLSH", "OLSHCO"] },
+            { symbol: "⛅", hr: "OBLAČNO", en: "CLOUDY", wrongHr: ["OBLAČON", "ČONOBLA", "LAČNOBO"], wrongEn: ["CLOUDI", "DOUCYL", "YCLOUD"] },
+            { symbol: "🌧️", hr: "KIŠA", en: "RAIN", wrongHr: ["ŠAKI", "KIŠA", "AKIŠ"], wrongEn: ["RIAN", "NIRA", "ARIN"] },
+            { symbol: "⛈️", hr: "OLUJA", en: "STORM", wrongHr: ["LUOJA", "JALUO", "OJALU"], wrongEn: ["STROM", "MORTS", "TSORM"] },
+            { symbol: "☀️", hr: "SUNCE", en: "SUN", wrongHr: ["SUNEC", "CENUS", "NUSEC"], wrongEn: ["SNU", "UNS", "NUS"] },
+            { symbol: "🌙", hr: "MJESEC LUNA", en: "MOON LUNA", wrongHr: ["JESECM", "SECJEM", "ECJESM"], wrongEn: ["MONO", "OMON", "NOMO"] },
+            { symbol: "⭐", hr: "ZVIJEZDA", en: "STAR", wrongHr: ["ZVJEZAD", "JEZDAZV", "EZDAZVJ"], wrongEn: ["TSAR", "RAST", "SART"] },
+            { symbol: "❤️", hr: "SRCE", en: "HEART", wrongHr: ["SREC", "CESR", "RECS"], wrongEn: ["HARTE", "EARTH", "TRAHE"] }
+        ];
+
+        // Podaci za brojeve 1-20
+        const numbersData = [
+            { symbol: "1", hr: "JEDAN", en: "ONE", wrongHr: ["JEDNA", "JEDNO", "DENAJ"], wrongEn: ["ONCE", "NEON", "ENO"] },
+            { symbol: "2", hr: "DVA", en: "TWO", wrongHr: ["DAV", "VAD", "ADV"], wrongEn: ["TOW", "WOT", "OWT"] },
+            { symbol: "3", hr: "TRI", en: "THREE", wrongHr: ["TIR", "RIT", "IRT"], wrongEn: ["THERE", "THRICE", "ETHER"] },
+            { symbol: "4", hr: "ČETIRI", en: "FOUR", wrongHr: ["ČETRII", "TIRIČE", "RIČETI"], wrongEn: ["FORU", "UROF", "FOUR"] },
+            { symbol: "5", hr: "PET", en: "FIVE", wrongHr: ["PTE", "ETP", "TEP"], wrongEn: ["FIEV", "VIFE", "EFIV"] },
+            { symbol: "6", hr: "ŠEST", en: "SIX", wrongHr: ["ŠTES", "TEŠS", "ESTŠ"], wrongEn: ["SIXT", "IXS", "XIS"] },
+            { symbol: "7", hr: "SEDAM", en: "SEVEN", wrongHr: ["SEDMA", "DAMES", "MASED"], wrongEn: ["SEVNE", "NEVES", "EVENS"] },
+            { symbol: "8", hr: "OSAM", en: "EIGHT", wrongHr: ["OSMA", "SAMO", "MASO"], wrongEn: ["EIGTH", "THGIE", "GETIH"] },
+            { symbol: "9", hr: "DEVET", en: "NINE", wrongHr: ["DEVTE", "VEDET", "TEDEV"], wrongEn: ["NIEN", "ENIN", "INEN"] },
+            { symbol: "10", hr: "DESET", en: "TEN", wrongHr: ["DESTE", "SEDET", "TEDES"], wrongEn: ["NET", "ENT", "TNE"] },
+            { symbol: "11", hr: "JEDANAEST", en: "ELEVEN", wrongHr: ["JEDANESTA", "NAESTJED", "ESTJEDAN"], wrongEn: ["ELEVNE", "NELEVE", "VELEEN"] },
+            { symbol: "12", hr: "DVANAEST", en: "TWELVE", wrongHr: ["DVANESTA", "NAESTDVA", "ESTDVANA"], wrongEn: ["TWELEVE", "LEVETW", "WELVET"] },
+            { symbol: "13", hr: "TRINAEST", en: "THIRTEEN", wrongHr: ["TRINESTA", "NAESTTRI", "ESTTRINA"], wrongEn: ["THIRETEEN", "TEENTHIR", "IRTHTEEN"] },
+            { symbol: "14", hr: "ČETRNAEST", en: "FOURTEEN", wrongHr: ["ČETRNAEST", "NAESTČETR", "ESTČETRNA"], wrongEn: ["FOURETEEN", "TEENFOUR", "OURTEENF"] },
+            { symbol: "15", hr: "PETNAEST", en: "FIFTEEN", wrongHr: ["PETNESTA", "NAESTPET", "ESTPETNA"], wrongEn: ["FIFETEEN", "TEENFIF", "IFFTEEN"] },
+            { symbol: "16", hr: "ŠESNAEST", en: "SIXTEEN", wrongHr: ["ŠESNESTA", "NAESTŠES", "ESTŠESNA"], wrongEn: ["SIXETEEN", "TEENSIX", "IXTEENS"] },
+            { symbol: "17", hr: "SEDAMNAEST", en: "SEVENTEEN", wrongHr: ["SEDAMNESTA", "NAESTSEDAM", "ESTSEDAMNA"], wrongEn: ["SEVENETEEN", "TEENSEVEN", "EVENTEENS"] },
+            { symbol: "18", hr: "OSAMNAEST", en: "EIGHTEEN", wrongHr: ["OSAMNESTA", "NAESTOSAM", "ESTOSAMNA"], wrongEn: ["EIGHETEEN", "TEENEIGHT", "IGHTEENE"] },
+            { symbol: "19", hr: "DEVETNAEST", en: "NINETEEN", wrongHr: ["DEVETNESTA", "NAESTDEVET", "ESTDEVETNA"], wrongEn: ["NIENETEEN", "TEENNINE", "INETEENN"] },
+            { symbol: "20", hr: "DVADESET", en: "TWENTY", wrongHr: ["DVADESTE", "SEDETDVA", "TEDESDVA"], wrongEn: ["TWENETY", "TYTWEN", "ENTYTW"] }
+        ];
+
+        // Varijable stanja
+        let currentLanguage = 'hr';
+        let currentCategory = 'emoji';
+        let currentQuestionIndex = 0;
+        let currentData = emojiData;
+        let answerChecked = false;
+        let timeoutId = null;
+        let wasCorrect = false;
+        let randomOrder = []; // NOVO: Random redoslijed pitanja
+
+        // DOM elementi
+        const symbolDisplay = document.getElementById('symbol-display');
+        const questionText = document.getElementById('question');
+        const subtitleText = document.getElementById('subtitle');
+        const optionsContainer = document.getElementById('options-container');
+        const progressDisplay = document.getElementById('progress');
+        const tryAgainBtn = document.getElementById('try-again-btn');
+        const hrBtn = document.getElementById('hr-btn');
+        const enBtn = document.getElementById('en-btn');
+        const emojiBtn = document.getElementById('emoji-btn');
+        const numbersBtn = document.getElementById('numbers-btn');
+
+        // Funkcija za kreiranje random redoslijeda
+        function createRandomOrder(data) {
+            const order = [];
+            for (let i = 0; i < data.length; i++) {
+                order.push(i);
+            }
+            shuffleArray(order);
+            return order;
+        }
+
+        // Funkcija za postavljanje pitanja
+        function loadQuestion() {
+            // NOVO: Koristi random redoslijed za pronalaženje trenutnog itema
+            const actualIndex = randomOrder[currentQuestionIndex];
+            const currentItem = currentData[actualIndex];
+            
+            // Postavi simbol (emoji ili broj)
+            symbolDisplay.textContent = currentItem.symbol;
+            
+            // Postavi tekst pitanja ovisno o jeziku
+            questionText.textContent = currentLanguage === 'hr' 
+                ? "Koja riječ odgovara ovom simbolu?" 
+                : "Which word matches this symbol?";
+                
+            // Postavi subtitle ovisno o jeziku
+            subtitleText.textContent = currentLanguage === 'hr'
+                ? "Poveži simbol s odgovarajućom riječi"
+                : "Connect the symbol with the correct word";
+            
+            // Pripremi opcije
+            const correctAnswer = currentLanguage === 'hr' ? currentItem.hr : currentItem.en;
+            const wrongAnswers = currentLanguage === 'hr' ? currentItem.wrongHr : currentItem.wrongEn;
+            
+            // Kombiniraj točan i 2 netočna odgovora
+            const allOptions = [correctAnswer, ...wrongAnswers.slice(0, 2)];
+            
+            // Pomiješaj opcije
+            shuffleArray(allOptions);
+            
+            // Očisti opcije
+            optionsContainer.innerHTML = '';
+            
+            // Dodaj opcije
+            allOptions.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'option';
+                button.textContent = option;
+                button.addEventListener('click', () => checkAnswer(option, correctAnswer, button));
+                optionsContainer.appendChild(button);
+            });
+            
+            // Ažuriraj progress
+            progressDisplay.textContent = currentLanguage === 'hr' 
+                ? `Pitanje: ${currentQuestionIndex + 1}/${currentData.length}` 
+                : `Question: ${currentQuestionIndex + 1}/${currentData.length}`;
+            
+            // Sakrij dugme "Pokušaj ponovno"
+            tryAgainBtn.style.display = 'none';
+            
+            // Resetiraj stanje
+            answerChecked = false;
+            wasCorrect = false;
+        }
+
+        // Funkcija za provjeru odgovora
+        function checkAnswer(selected, correct, buttonElement) {
+            if (answerChecked) return;
+            
+            answerChecked = true;
+            wasCorrect = (selected === correct);
+            
+            // Označi sve gumbe
+            const allButtons = document.querySelectorAll('.option');
+            allButtons.forEach(btn => {
+                if (btn.textContent === correct) {
+                    btn.classList.add('correct');
+                } else if (btn.textContent === selected && selected !== correct) {
+                    btn.classList.add('incorrect');
+                }
+                btn.disabled = true;
+            });
+            
+            // Ako je odgovor točan, automatski prijeđi na sljedeće pitanje
+            if (wasCorrect) {
+                if (timeoutId) clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => {
+                    nextQuestion();
+                }, 500);
+            } else {
+                // Ako je odgovor netočan, prikaži dugme "Pokušaj ponovno"
+                tryAgainBtn.style.display = 'block';
+                tryAgainBtn.textContent = currentLanguage === 'hr' 
+                    ? "Pokušaj ponovno" 
+                    : "Try again";
+            }
+        }
+
+        // Funkcija za ponovno pokušavanje istog pitanja
+        function retryQuestion() {
+            loadQuestion();
+        }
+
+        // Funkcija za sljedeće pitanje
+        function nextQuestion() {
+            currentQuestionIndex++;
+            
+            // Ako smo došli do kraja, generiraj novi random redoslijed i kreni ispočetka
+            if (currentQuestionIndex >= currentData.length) {
+                currentQuestionIndex = 0;
+                randomOrder = createRandomOrder(currentData); // NOVO: Novi random redoslijed
+            }
+            
+            loadQuestion();
+        }
+
+        // Funkcija za promjenu jezika
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            
+            // Ažuriraj gumbe za jezik
+            if (lang === 'hr') {
+                hrBtn.classList.add('active');
+                enBtn.classList.remove('active');
+            } else {
+                enBtn.classList.add('active');
+                hrBtn.classList.remove('active');
+            }
+            
+            // Ponovno učitaj trenutno pitanje s novim jezikom
+            loadQuestion();
+        }
+
+        // Funkcija za promjenu kategorije
+        function setCategory(category) {
+            currentCategory = category;
+            currentQuestionIndex = 0; // Resetiraj na prvo pitanje
+            
+            // Postavi odgovarajuće podatke
+            currentData = category === 'emoji' ? emojiData : numbersData;
+            
+            // NOVO: Generiraj random redoslijed za novu kategoriju
+            randomOrder = createRandomOrder(currentData);
+            
+            // Ažuriraj gumbe za kategoriju
+            if (category === 'emoji') {
+                emojiBtn.classList.add('active');
+                numbersBtn.classList.remove('active');
+            } else {
+                numbersBtn.classList.add('active');
+                emojiBtn.classList.remove('active');
+            }
+            
+            // Učitaj prvo pitanje u novoj kategoriji
+            loadQuestion();
+        }
+
+        // Pomocna funkcija za miješanje niza
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Event listeneri
+        hrBtn.addEventListener('click', () => setLanguage('hr'));
+        enBtn.addEventListener('click', () => setLanguage('en'));
+        emojiBtn.addEventListener('click', () => setCategory('emoji'));
+        numbersBtn.addEventListener('click', () => setCategory('numbers'));
+        tryAgainBtn.addEventListener('click', retryQuestion);
+
+        // NOVO: Inicijalno generiranje random redoslijeda
+        randomOrder = createRandomOrder(currentData);
+
+        // Inicijalno učitavanje
+        loadQuestion();
+    </script>
+</body>
+</html>
